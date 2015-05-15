@@ -11,10 +11,10 @@
     "authors": [
         {
             "name": "Kevin Hill",
-            "email": "kevinkhill@gmail.com"
+            "email": "kevinkhill@gmail.com",
+            "role": "Developer"
         }
     ],
-    "minimum-stability": "stable",
     "require": {
         "php": ">=5.4.0",
         "ext-mbstring": "*",
@@ -36,5 +36,6 @@
         "psr-4": {
             "Khill\\Lavacharts\\DataTablePlus\\Tests\\": "tests/"
         }
-    }
+    },
+    "minimum-stability": "stable"
 }
