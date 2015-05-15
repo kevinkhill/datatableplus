@@ -36,5 +36,5 @@
         "psr-4": {
             "Khill\\Lavacharts\\DataTablePlus\\Tests\\": "tests/"
         }
-    },
+    }
 }
