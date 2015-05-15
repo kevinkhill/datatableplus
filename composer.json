@@ -1,6 +1,6 @@
 {
     "name": "khill/datatableplus",
-    "description": "DataTablePlus is an add-on package for Lavacharts which extends the functionality of creating and parsing DataTables.",
+    "description": "DataTablePlus is an add-on package for Lavacharts which extends the functionality of DataTables.",
     "keywords": [
         "charts",
         "graphs",
