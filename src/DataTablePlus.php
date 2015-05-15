@@ -26,27 +26,13 @@ use \Khill\Lavacharts\DataTablePlus\Exceptions\DataTableNotFound;
 class DataTablePlus extends DataTable
 {
     /**
-     * Creates Volcano & Javascript Factory
+     * Creates a new DataTablePlus object
      *
-     * @return Lavacharts
+     * @return DataTablePlus
      */
     public function __construct($timezone = null)
     {
         parent::__construct($timezone);
-
-        if (class_exists('\Khill\Lavacharts\Configs\DataTable') === false) {
-            throw new DataTableNotFound;
-        }
-
-        if (!$this->usingComposer()) {
-            require_once(__DIR__.'/Psr4Autoloader.php');
-
-            $loader = new Psr4Autoloader;
-            $loader->register();
-            $loader->addNamespace('Khill\Lavacharts\DataTables\Factory', __DIR__);
-        }
-
-        $this->setTimezone($timezone);
     }
 
     /**
