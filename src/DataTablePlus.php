@@ -3,8 +3,11 @@
 namespace Khill\Lavacharts\DataTablePlus;
 
 use \League\Csv\Reader;
+use \League\Csv\Writer;
 use \Khill\Lavacharts\Utils;
 use \Khill\Lavacharts\Configs\DataTable;
+use \Khill\Lavacharts\Exceptions\InvalidColumnType;
+use \Khill\Lavacharts\Exceptions\InvalidFunctionParam;
 
 /**
  * DataTable Factory
@@ -21,8 +24,15 @@ use \Khill\Lavacharts\Configs\DataTable;
  * @link      http://lavacharts.com                   Official Docs Site
  * @license   http://opensource.org/licenses/MIT MIT
  */
-class DataTablePlus extends DataTable
+class DataTablePlus extends DataTable// implements Itterator
 {
+    /**
+     * Csv File Reader
+     *
+     * @var \League\Csv\Reader
+     */
+    private $reader;
+    
     /**
      * Creates a new DataTablePlus object
      *
@@ -31,6 +41,22 @@ class DataTablePlus extends DataTable
     public function __construct($timezone = null)
     {
         parent::__construct($timezone);
+    }
+
+    /**
+     * Sets the CsvReader to use with parsing csv files.
+     *
+     * @see http://csv.thephpleague.com/
+     * @access public
+     * @since  1.0.0
+     * @param  \League\Csv\Reader $csvReader
+     * @return self
+     */
+    public function setReader(Reader $csvReader)
+    {
+        $this->reader = $csvReader;
+
+        return $this;
     }
 
     /**
@@ -46,7 +72,7 @@ class DataTablePlus extends DataTable
      * @param  array  $columnTypes Array of column types to apply to the csv values
      * @return \Khill\Lavacharts\DataTable
      */
-    public function parseCsv($filepath, $columnTypes = null)
+    public function parseCsvFile($filepath, $columnTypes = null)
     {
         if (Utils::nonEmptyString($filepath) === false) {
             throw new InvalidFunctionParam(
@@ -64,10 +90,10 @@ class DataTablePlus extends DataTable
             );
         }
 
-        $reader = Reader::createFromPath($filepath);
-        $reader->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY);
+        $this->setReader(Reader::createFromPath($filepath));
+        $this->reader->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY);
 
-        $csvColumns = $reader->fetchOne();
+        $csvColumns = $this->reader->fetchOne();
 
         foreach($columnTypes as $index => $column) {
             if (in_array($column, $this->columnTypes, true) === false) {
@@ -80,7 +106,7 @@ class DataTablePlus extends DataTable
             $this->addColumnFromStrings($columnTypes[$index], $csvColumns[$index]);
         }
 
-        $csvRows = $reader->setOffset(1)->fetchAll(function ($row) {
+        $csvRows = $this->reader->setOffset(1)->fetchAll(function ($row) {
             return array_map(function ($cell) {
                 if (is_numeric($cell)) {
                     return $cell + 0;
@@ -100,12 +126,32 @@ class DataTablePlus extends DataTable
      *
      * @access public
      * @since  1.0.0
-     * @param  \Khill\Lavacharts\DataTable $datatable
      * @param  string $filepath Path where to output the file
-     * @return \Khill\Lavacharts\DataTable
+     * @return string
      */
-    public function toCsv(DataTable $datatable)
+    public function toCsv($filepath)
     {
-        //
+        if (Utils::nonEmptyString($filepath) === false) {
+            throw new InvalidFunctionParam(
+                $filepath,
+                __FUNCTION__,
+                'string'
+            );
+        }
+
+        $csv = Writer::createFromFileObject(new \SplTempFileObject());
+        $csv->insertOne($this->getColumnLabels());
+        
+        foreach ($this->rows as $row) {
+            $rowData = [];
+
+            foreach ($row['c'] as $data) {
+                $rowData[] = $data['v'];
+            }
+
+            $csv->insertOne($rowData);
+        }
+
+        $csv->output($filepath);
     }
 }
