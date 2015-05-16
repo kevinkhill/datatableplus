@@ -2,11 +2,9 @@
 
 namespace Khill\Lavacharts\DataTablePlus;
 
-use \SplFileObject;
 use \League\Csv\Reader;
+use \Khill\Lavacharts\Utils;
 use \Khill\Lavacharts\Configs\DataTable;
-use \Khill\Lavacharts\Exceptions\InvalidDataTableNotFound;
-use \Khill\Lavacharts\DataTablePlus\Exceptions\DataTableNotFound;
 
 /**
  * DataTable Factory
@@ -67,7 +65,7 @@ class DataTablePlus extends DataTable
         }
 
         $reader = Reader::createFromPath($filepath);
-        $reader->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY);
+        $reader->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY);
 
         $csvColumns = $reader->fetchOne();
 
