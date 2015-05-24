@@ -4,6 +4,7 @@ namespace Khill\Lavacharts\DataTablePlus;
 
 use \League\Csv\Reader;
 use \League\Csv\Writer;
+use \Illuminate\Database\Eloquent\Collection;
 use \Khill\Lavacharts\Utils;
 use \Khill\Lavacharts\Configs\DataTable;
 use \Khill\Lavacharts\Exceptions\InvalidColumnType;
@@ -24,14 +25,21 @@ use \Khill\Lavacharts\Exceptions\InvalidFunctionParam;
  * @link      http://lavacharts.com                   Official Docs Site
  * @license   http://opensource.org/licenses/MIT MIT
  */
-class DataTablePlus extends DataTable// implements Itterator
+class DataTablePlus extends DataTable// implements Iterator
 {
     /**
      * Csv File Reader
      *
      * @var \League\Csv\Reader
      */
-    private $reader;
+    protected $reader;
+
+    /**
+     * New columns for the datatable.
+     * 
+     * @var array
+     */
+    protected $newColumns;
     
     /**
      * Creates a new DataTablePlus object
@@ -70,6 +78,7 @@ class DataTablePlus extends DataTable// implements Itterator
      * @since  1.0.0
      * @param  string $filepath    Path location to a csv file
      * @param  array  $columnTypes Array of column types to apply to the csv values
+     * @throws \Khill\Lavacharts\Exceptions\InvalidFunctionParam
      * @return \Khill\Lavacharts\DataTable
      */
     public function parseCsvFile($filepath, $columnTypes = null)
@@ -82,20 +91,15 @@ class DataTablePlus extends DataTable// implements Itterator
             );
         }
 
-        if (is_array($columnTypes) === false || empty($columnTypes) === true) {
-            throw new InvalidFunctionParam(
-               $columnTypes,
-                __FUNCTION__,
-                'array'
-            );
-        }
-
+        $this->addNewColumns($columnTypes);
         $this->setReader(Reader::createFromPath($filepath));
+
         $this->reader->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY);
+
 
         $csvColumns = $this->reader->fetchOne();
 
-        foreach($columnTypes as $index => $column) {
+        foreach($this->newColumns as $index => $column) {
             if (in_array($column, $this->columnTypes, true) === false) {
                 throw new InvalidColumnType(
                    $column,
@@ -127,6 +131,7 @@ class DataTablePlus extends DataTable// implements Itterator
      * @access public
      * @since  1.0.0
      * @param  string $filepath Path where to output the file
+     * @throws \Khill\Lavacharts\Exceptions\InvalidFunctionParam
      * @return string
      */
     public function toCsv($filepath)
@@ -153,5 +158,53 @@ class DataTablePlus extends DataTable// implements Itterator
         }
 
         $csv->output($filepath);
+    }
+
+    /**
+     * Using the toArray() method of the collection, adds as rows to the datatable.
+     *
+     * Columns must be added with the generic addColumn() method to define the model
+     * property for the column id.
+     *
+     * @access public
+     * @param  Collection $collection Collection of models
+     * @return self
+     */
+    public function addRowsFromCollection(Collection $collection)
+    {
+        $colCount = $this->getColumnCount();
+
+        foreach ($collection->toArray() as $collectionRow) {
+            $row = [];
+
+            for ($i = 0; $i < $colCount; $i++) {
+                $row[] = $collectionRow[$this->getColumnId($i)];
+            }
+
+            $this->addRow($row);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Sets the column types to assign to new datatable.
+     *
+     * @access protected
+     * @param  array Column types to assign to the new DataTable.
+     * @throws \Khill\Lavacharts\Exceptions\InvalidFunctionParam
+     * @return void
+     */
+    protected function addNewColumns($columnTypes)
+    {
+        if (is_array($columnTypes) === false || empty($columnTypes) === true) {
+            throw new InvalidFunctionParam(
+               $columnTypes,
+                __FUNCTION__,
+                'array'
+            );
+        }
+
+        $this->newColumns = $columnTypes;
     }
 }
