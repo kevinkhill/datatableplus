@@ -2,18 +2,23 @@
 
 namespace Khill\Lavacharts\DataTablePlus;
 
+use \Khill\Lavacharts\Utils;
+use \Khill\Lavacharts\DataTables\DataTable;
+use \Khill\Lavacharts\Exceptions\InvalidColumnType;
+use \Khill\Lavacharts\Exceptions\InvalidFunctionParam;
 use \League\Csv\Reader;
 use \League\Csv\Writer;
 use \Illuminate\Database\Eloquent\Collection;
-use \Khill\Lavacharts\Utils;
-use \Khill\Lavacharts\Configs\DataTable;
-use \Khill\Lavacharts\Exceptions\InvalidColumnType;
-use \Khill\Lavacharts\Exceptions\InvalidFunctionParam;
 
 /**
- * DataTable Factory
+ * DataTablePlus
  *
- * A Class for creating DataTables for Lavacharts.
+ * An extension of the Lavacharts' DataTable to add extra functionality.
+ *
+ * This includes:
+ *  - parsing csv files to DataTables
+ *  - exporting DataTables to csv files
+ *  - parsing Eloquent collections to DataTables
  *
  *
  * @category  Class
@@ -25,7 +30,7 @@ use \Khill\Lavacharts\Exceptions\InvalidFunctionParam;
  * @link      http://lavacharts.com                   Official Docs Site
  * @license   http://opensource.org/licenses/MIT MIT
  */
-class DataTablePlus extends DataTable// implements Iterator
+class DataTablePlus extends DataTable
 {
     /**
      * Csv File Reader
@@ -36,11 +41,11 @@ class DataTablePlus extends DataTable// implements Iterator
 
     /**
      * New columns for the datatable.
-     * 
+     *
      * @var array
      */
     protected $newColumns;
-    
+
     /**
      * Creates a new DataTablePlus object
      *
@@ -146,7 +151,7 @@ class DataTablePlus extends DataTable// implements Iterator
 
         $csv = Writer::createFromFileObject(new \SplTempFileObject());
         $csv->insertOne($this->getColumnLabels());
-        
+
         foreach ($this->rows as $row) {
             $rowData = [];
 
